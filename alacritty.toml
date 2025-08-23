@@ -1,0 +1,18 @@
+[general]
+live_config_reload = true
+working_directory = "D:\\Dev"
+
+[window]
+startup_mode = "Maximized"
+
+[cursor]
+style = { shape = "Beam", blinking = "On" }
+
+[keyboard]
+bindings = [
+  { key = "N", mods = "Control|Shift", action = "CreateNewWindow" }
+]
+
+[terminal]
+shell = { program = "D:\\Programs\\Git\\bin\\bash.exe", args = ["-i", "-l" ] }
+
