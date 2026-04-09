@@ -14,6 +14,7 @@ vim.o.autoindent = true
 
 vim.o.backup = false
 vim.o.swapfile = false
+vim.o.winborder = 'rounded'
 
 vim.g.mapleader = ','
 
@@ -32,6 +33,8 @@ vim.keymap.set('n', '<Right>', '<C-w><', { desc = '' })
 vim.keymap.set('n', '<Down>',  '<C-w>+', { desc = '' })
 vim.keymap.set('n', '<Up>',    '<C-w>-', { desc = '' })
 
+vim.keymap.set('n', '<leader>cd', ':cd %:h<CR>', { silent = true, desc = 'Change directory to the current file folder' })
+
 vim.pack.add {
     'https://github.com/neovim/nvim-lspconfig',
     'https://github.com/mason-org/mason.nvim',
@@ -41,6 +44,7 @@ vim.pack.add {
     'https://github.com/hrsh7th/cmp-cmdline',
     'https://github.com/hrsh7th/cmp-nvim-lsp-signature-help',
     'https://github.com/hrsh7th/nvim-cmp',
+    'https://github.com/ahmedkhalf/project.nvim',
     'https://github.com/stevearc/oil.nvim',
     'https://github.com/nvim-lua/plenary.nvim',
     'https://github.com/nvim-telescope/telescope.nvim',
@@ -51,16 +55,17 @@ vim.pack.add {
     'https://github.com/nvim-tree/nvim-tree.lua',
 }
 
+require('base16-colorscheme').with_config({
+    telescope = false,
+    cmp = false,
+})
+
 vim.cmd('colorscheme base16-atelier-dune')
 
+-- dotnet tool install --global roslyn-language-server --prerelease
+vim.lsp.enable('roslyn_ls')
+
 require('mason').setup()
-
-vim.lsp.enable('rust_analyzer')
-
-vim.keymap.set('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<cr>')
-vim.keymap.set('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<cr>')
-vim.keymap.set('n', '<C-w>d', '<cmd>lua vim.diagnostic.open_float()<cr>')
-vim.keymap.set('n', '<C-w><C-d>', '<cmd>lua vim.diagnostic.open_float()<cr>')
 
 vim.api.nvim_create_autocmd('LspAttach', {
   callback = function(event)
@@ -71,7 +76,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     -- These keymaps are the defaults in Neovim v0.11
     bufmap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>')
     bufmap('n', 'grr', '<cmd>lua vim.lsp.buf.references()<cr>')
-    bufmap('n', 'gri', '<cmd>lua vim.lsp.buf.implementation()<cr>')
+    bufmap('n', 'grd', '<cmd>lua vim.lsp.buf.implementation()<cr>')
     bufmap('n', 'grn', '<cmd>lua vim.lsp.buf.rename()<cr>')
     bufmap('n', 'gra', '<cmd>lua vim.lsp.buf.code_action()<cr>')
     bufmap('n', 'gO', '<cmd>lua vim.lsp.buf.document_symbol()<cr>')
@@ -87,10 +92,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
 local cmp = require('cmp')
 cmp.setup({
-    window = {
-        completion = cmp.config.window.bordered(),
-        -- documentation = cmp.config.window.bordered(),
-    },
     mapping = cmp.mapping.preset.insert({
         ['<C-b>'] = cmp.mapping.scroll_docs(-4),
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
@@ -133,6 +134,12 @@ cmp.setup.cmdline(':', {
 })
 
 require("nvim-tree").setup({
+    sync_root_with_cwd = true,
+    respect_buf_cwd = true,
+    update_focused_file = {
+        enable = true,
+        update_root = true
+    },
     live_filter = {
         prefix = "[FILTER]: ",
         always_show_folders = false, -- Turn into false from true by default
@@ -140,13 +147,8 @@ require("nvim-tree").setup({
 })
 vim.keymap.set("n", "<F2>", ":NvimTreeToggle<CR>", { silent = true, noremap = true })
 
-local builtin = require('telescope.builtin')
-vim.keymap.set('n', '<Leader>ff', builtin.find_files, { desc = 'Telescope find files' })
-vim.keymap.set('n', '<Leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
-vim.keymap.set('n', '<Leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
-vim.keymap.set('n', '<Leader>fh', builtin.help_tags, { desc = 'Telescope help tags' })
-
 require('oil').setup()
+require("project_nvim").setup()
 require('lualine').setup({
     sections = {
         lualine_x = {
@@ -172,7 +174,24 @@ require('lualine').setup({
         }
     }
 })
-require('telescope').setup()
+
+local telescope = require('telescope')
+local builtin = require('telescope.builtin')
+
+telescope.setup()
+telescope.load_extension('projects')
+
+vim.keymap.set('n', '<Leader>ff', builtin.find_files, { desc = 'Telescope find files' })
+vim.keymap.set('n', '<Leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
+vim.keymap.set('n', '<Leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
+vim.keymap.set('n', '<Leader>fh', builtin.help_tags, { desc = 'Telescope help tags' })
+vim.keymap.set('n', '<Leader>fp', telescope.extensions.projects.projects, { desc = 'Telescope projects' })
+vim.keymap.set('n', '<Leader>fv', function()
+    builtin.find_files({
+        cwd = vim.fn.stdpath('config')
+    })
+end)
+
 require('Comment').setup()
 require('dashboard').setup({
     theme = 'hyper',
@@ -182,6 +201,7 @@ require('dashboard').setup({
         },
         shortcut = {
             { icon = '󰊳  ' , desc = 'Update', group = '@property', action = 'lua vim.pack.update(nil, {})', key = 'u' },
+            { icon = '' , desc = 'New Buffer', group = 'Buffer', action = 'ene', key = 'e' },
             {
                 icon = ' ',
                 icon_hl = '@variable',
@@ -199,4 +219,5 @@ require('dashboard').setup({
         },
     },
 })
+
 
