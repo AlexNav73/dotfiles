@@ -37,7 +37,6 @@ vim.keymap.set('n', '<leader>cd', ':cd %:h<CR>', { silent = true, desc = 'Change
 
 vim.pack.add {
     'https://github.com/neovim/nvim-lspconfig',
-    'https://github.com/mason-org/mason.nvim',
     'https://github.com/hrsh7th/cmp-nvim-lsp',
     'https://github.com/hrsh7th/cmp-buffer',
     'https://github.com/hrsh7th/cmp-path',
@@ -64,8 +63,7 @@ vim.cmd('colorscheme base16-atelier-dune')
 
 -- dotnet tool install --global roslyn-language-server --prerelease
 vim.lsp.enable('roslyn_ls')
-
-require('mason').setup()
+vim.lsp.enable('rust_analyzer')
 
 vim.api.nvim_create_autocmd('LspAttach', {
   callback = function(event)
@@ -76,7 +74,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     -- These keymaps are the defaults in Neovim v0.11
     bufmap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>')
     bufmap('n', 'grr', '<cmd>lua vim.lsp.buf.references()<cr>')
-    bufmap('n', 'grd', '<cmd>lua vim.lsp.buf.implementation()<cr>')
+    bufmap('n', 'gri', '<cmd>lua vim.lsp.buf.implementation()<cr>')
     bufmap('n', 'grn', '<cmd>lua vim.lsp.buf.rename()<cr>')
     bufmap('n', 'gra', '<cmd>lua vim.lsp.buf.code_action()<cr>')
     bufmap('n', 'gO', '<cmd>lua vim.lsp.buf.document_symbol()<cr>')
