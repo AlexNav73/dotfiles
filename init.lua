@@ -35,14 +35,22 @@ vim.keymap.set('n', '<Up>',    '<C-w>-', { desc = '' })
 
 vim.keymap.set('n', '<leader>cd', ':cd %:h<CR>', { silent = true, desc = 'Change directory to the current file folder' })
 
+vim.cmd.packadd('nvim.undotree')
+
+vim.keymap.set('n', '<F5>', require('undotree').open)
+
 vim.pack.add {
     'https://github.com/neovim/nvim-lspconfig',
+
+    ------ cmp plugin (+ dependencies) --------
     'https://github.com/hrsh7th/cmp-nvim-lsp',
     'https://github.com/hrsh7th/cmp-buffer',
     'https://github.com/hrsh7th/cmp-path',
     'https://github.com/hrsh7th/cmp-cmdline',
     'https://github.com/hrsh7th/cmp-nvim-lsp-signature-help',
     'https://github.com/hrsh7th/nvim-cmp',
+    ---------------------------------------------
+
     'https://github.com/ahmedkhalf/project.nvim',
     'https://github.com/stevearc/oil.nvim',
     'https://github.com/nvim-lua/plenary.nvim',
@@ -52,6 +60,11 @@ vim.pack.add {
     'https://github.com/nvimdev/dashboard-nvim',
     'https://github.com/numToStr/Comment.nvim',
     'https://github.com/nvim-tree/nvim-tree.lua',
+
+    ------ noice plugin (+ dependencies) --------
+    'https://github.com/MunifTanjim/nui.nvim',
+    'https://github.com/folke/noice.nvim'
+    ---------------------------------------------
 }
 
 require('base16-colorscheme').with_config({
@@ -131,7 +144,7 @@ cmp.setup.cmdline(':', {
     }
 })
 
-require("nvim-tree").setup({
+require('nvim-tree').setup({
     sync_root_with_cwd = true,
     respect_buf_cwd = true,
     update_focused_file = {
@@ -139,14 +152,15 @@ require("nvim-tree").setup({
         update_root = true
     },
     live_filter = {
-        prefix = "[FILTER]: ",
+        prefix = '[FILTER]: ',
         always_show_folders = false, -- Turn into false from true by default
     }
 })
-vim.keymap.set("n", "<F2>", ":NvimTreeToggle<CR>", { silent = true, noremap = true })
+vim.keymap.set('n', '<F2>', ':NvimTreeToggle<CR>', { silent = true, noremap = true })
 
+require('noice').setup()
 require('oil').setup()
-require("project_nvim").setup()
+require('project_nvim').setup()
 require('lualine').setup({
     sections = {
         lualine_x = {
