@@ -15,6 +15,7 @@ vim.o.autoindent = true
 vim.o.backup = false
 vim.o.swapfile = false
 vim.o.winborder = 'rounded'
+vim.o.termguicolors = true
 
 vim.g.mapleader = ','
 
@@ -35,6 +36,11 @@ vim.keymap.set('n', '<Up>',    '<C-w>-', { desc = '' })
 
 vim.keymap.set('n', '<leader>cd', ':cd %:h<CR>', { silent = true, desc = 'Change directory to the current file folder' })
 
+vim.keymap.set('n', 'gK', function()
+  local new_config = not vim.diagnostic.config().virtual_lines
+  vim.diagnostic.config({ virtual_lines = new_config })
+end, { desc = 'Toggle diagnostic virtual_lines' })
+
 vim.cmd.packadd('nvim.undotree')
 
 vim.keymap.set('n', '<F5>', require('undotree').open)
@@ -47,25 +53,29 @@ vim.pack.add {
     'https://github.com/hrsh7th/cmp-buffer',
     'https://github.com/hrsh7th/cmp-path',
     'https://github.com/hrsh7th/cmp-cmdline',
-    'https://github.com/hrsh7th/cmp-nvim-lsp-signature-help',
     'https://github.com/hrsh7th/nvim-cmp',
     ---------------------------------------------
 
     'https://github.com/ahmedkhalf/project.nvim',
-    'https://github.com/stevearc/oil.nvim',
     'https://github.com/nvim-lua/plenary.nvim',
     'https://github.com/nvim-telescope/telescope.nvim',
     'https://github.com/RRethy/base16-nvim',
     'https://github.com/nvim-lualine/lualine.nvim',
     'https://github.com/nvimdev/dashboard-nvim',
     'https://github.com/numToStr/Comment.nvim',
-    'https://github.com/nvim-tree/nvim-tree.lua',
 
     ------ noice plugin (+ dependencies) --------
     'https://github.com/MunifTanjim/nui.nvim',
-    'https://github.com/folke/noice.nvim'
+    'https://github.com/rcarriga/nvim-notify',
+    'https://github.com/folke/noice.nvim',
     ---------------------------------------------
+
+    'https://github.com/nvim-mini/mini.files'
 }
+
+local mini = require('mini.files')
+mini.setup()
+vim.keymap.set('n', '<F2>', mini.open)
 
 require('base16-colorscheme').with_config({
     telescope = false,
@@ -81,23 +91,11 @@ vim.lsp.enable('rust_analyzer')
 vim.api.nvim_create_autocmd('LspAttach', {
   callback = function(event)
     local bufmap = function(mode, rhs, lhs)
-      vim.keymap.set(mode, rhs, lhs, {buffer = event.buf})
+      vim.keymap.set(mode, rhs, lhs, { buffer = event.buf })
     end
 
-    -- These keymaps are the defaults in Neovim v0.11
-    bufmap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>')
-    bufmap('n', 'grr', '<cmd>lua vim.lsp.buf.references()<cr>')
-    bufmap('n', 'gri', '<cmd>lua vim.lsp.buf.implementation()<cr>')
-    bufmap('n', 'grn', '<cmd>lua vim.lsp.buf.rename()<cr>')
-    bufmap('n', 'gra', '<cmd>lua vim.lsp.buf.code_action()<cr>')
-    bufmap('n', 'gO', '<cmd>lua vim.lsp.buf.document_symbol()<cr>')
-    bufmap({'i', 's'}, '<C-s>', '<cmd>lua vim.lsp.buf.signature_help()<cr>')
-
     -- These are custom keymaps
-    bufmap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<cr>')
-    bufmap('n', 'grt', '<cmd>lua vim.lsp.buf.type_definition()<cr>')
-    bufmap('n', 'grd', '<cmd>lua vim.lsp.buf.declaration()<cr>')
-    bufmap({'n', 'x'}, 'gq', '<cmd>lua vim.lsp.buf.format({async = true})<cr>')
+    bufmap({'n', 'x'}, 'gq', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>')
   end,
 })
 
@@ -115,7 +113,16 @@ cmp.setup({
         { name = 'buffer' },
         { name = 'path' },
         { name = 'cmdline' },
-        { name = 'nvim-lsp-signature-help' },
+    },
+    formatting = {
+        format = function(entry, vim_item)
+            vim_item.dup = ({
+                nvim_lsp = 0,
+                buffer = 0,
+            })[entry.source.name] or 0
+
+            return vim_item
+        end
     },
     sorting = {
         comparators = {
@@ -144,22 +151,9 @@ cmp.setup.cmdline(':', {
     }
 })
 
-require('nvim-tree').setup({
-    sync_root_with_cwd = true,
-    respect_buf_cwd = true,
-    update_focused_file = {
-        enable = true,
-        update_root = true
-    },
-    live_filter = {
-        prefix = '[FILTER]: ',
-        always_show_folders = false, -- Turn into false from true by default
-    }
-})
-vim.keymap.set('n', '<F2>', ':NvimTreeToggle<CR>', { silent = true, noremap = true })
+vim.keymap.set('n', 'nd', require('notify').dismiss)
 
 require('noice').setup()
-require('oil').setup()
 require('project_nvim').setup()
 require('lualine').setup({
     sections = {
@@ -198,6 +192,7 @@ vim.keymap.set('n', '<Leader>fg', builtin.live_grep, { desc = 'Telescope live gr
 vim.keymap.set('n', '<Leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
 vim.keymap.set('n', '<Leader>fh', builtin.help_tags, { desc = 'Telescope help tags' })
 vim.keymap.set('n', '<Leader>fp', telescope.extensions.projects.projects, { desc = 'Telescope projects' })
+vim.keymap.set('n', '<Leader>fn', telescope.extensions.notify.notify, { desc = 'Telescope notifications' })
 vim.keymap.set('n', '<Leader>fv', function()
     builtin.find_files({
         cwd = vim.fn.stdpath('config')
@@ -231,5 +226,4 @@ require('dashboard').setup({
         },
     },
 })
-
 
